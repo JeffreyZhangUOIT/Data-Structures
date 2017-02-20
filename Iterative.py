@@ -193,6 +193,7 @@ def NineQueen():
 
 
 start_time = time.clock()
+# Select which function to use. Either NineQueen() or EightQueen()
 NineQueen()
 
 print "Total CPU Time:", time.clock() - start_time, "seconds."

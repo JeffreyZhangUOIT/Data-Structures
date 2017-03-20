@@ -1,5 +1,8 @@
 import math
 class Tree(object):
+    def __init__(self, data):
+        self.data = data
+
     def __init__(self, data, left, right):
         self.left = left
         self.right = right
@@ -30,24 +33,24 @@ preorder = input('Please enter your Preorder Sequence: ')
 leftChild = None
 rightChild = None
 a = [i for i in preorder]
-depth = math.ceil(math.sqrt(len(a)))
-middle = math.pow(2, depth)/2
-node = 0
 
-def buildTree(a, node, middle, depth ):
-    if depth == 0:
-        tNode = Tree(a[node])
+
+def buildTreePreorder(a):
+    depth = int(math.ceil(math.log(len(a), 2)))
+    middle = int(math.floor(math.pow(2, depth) / 2))
+    if depth <= 1:
+        tNode = Tree(a[0], None, None)
         return
-    tNode = Tree(a[node], a[node+1], a[middle+1])
+    else:
 
-    B, C = a[:middle], a[middle+1:]
-    depth = depth - 1
-    middle = math.floor(math.pow(2, depth)/2 )
+        tNode = Tree(a[0], a[1], a[middle+1])
+        a.pop(0)
+        b, c = a[:middle], a[middle+1:]
+        depth = depth - 1
+        buildTreePreorder(b)
+        buildTreePreorder(c)
 
-    buildTree(B, B[node+1], B[middle], depth)
-    buildTree(C, C[node+1], C[middle], depth)
-
-buildTree(a, node, middle, depth)
+buildTreePreorder(a)
 
 
 def postOrder(tree):

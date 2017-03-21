@@ -1,4 +1,25 @@
 import math
+
+def postOrder(tree):
+    if tree == None: return
+    postOrder(tree.left)
+    postOrder(tree.right)
+    print tree.data,
+    return
+
+def preOrder(tree):
+    if tree == None: return
+    print tree.data,
+    preOrder(tree.left)
+    preOrder(tree.right)
+    return
+
+def inOrder(tree):
+    if tree == None: return
+    inOrder(tree.left)
+    print tree.data,
+    inOrder(tree.right)
+
 class Tree(object):
 
     def __init__(self, data, left, right):
@@ -28,15 +49,6 @@ class Tree(object):
     def data(self):
         return self.data
 
-
-preorder = input('Please enter your Preorder Sequence: ')
-
-leftChild = None
-rightChild = None
-a = [i for i in preorder]
-tNode = Tree(1, None, None)
-a.pop(0)
-
 def buildTreePreorder(a, tNode):
     if tNode == None:
         return
@@ -46,7 +58,7 @@ def buildTreePreorder(a, tNode):
         depth = int(math.ceil(math.log(len(a), 2)))
         middle = int(math.floor(math.pow(2, depth) / 2))
         if depth == 0:
-            Node = Tree(a[0], None, None)
+            tNode.addChild(a[0])
             return
         else:
             tNode.addChild(a[0])
@@ -62,16 +74,23 @@ def buildTreePreorder(a, tNode):
             b, c = a[:middle-2], a[middle-1:]
             buildTreePreorder(b, tNode.left)
             buildTreePreorder(c, tNode.right)
+            
 
+
+preorder = input('Please enter your Sequence: ')
+
+leftChild = None
+rightChild = None
+a = [i for i in preorder]
+tNode = Tree(1, None, None)
+a.pop(0)
 buildTreePreorder(a, tNode)
 
+print 'post-order: '
+postOrder(tNode)
 
-def preOrder(tree):
-    if tree == None: return
-    print tree.data
-    preOrder(tree.left)
-    preOrder(tree.right)
-    return
+print
+print 'in-order: '
+inOrder(tNode)
 
-preOrder(tNode)
 # 1,2,3,4,5,6,7,8,9,10,11,12

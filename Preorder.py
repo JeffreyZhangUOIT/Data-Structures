@@ -45,7 +45,6 @@ def buildTreePreorder(a, tNode):
     else:
         depth = int(math.ceil(math.log(len(a), 2)))
         middle = int(math.floor(math.pow(2, depth) / 2))
-        print 'depth is ', depth, 'and the middle is', middle, 'array size is', len(a)
         if depth == 0:
             Node = Tree(a[0], None, None)
             return

@@ -1,7 +1,5 @@
 import math
 class Tree(object):
-    def __init__(self, data):
-        self.data = data
 
     def __init__(self, data, left, right):
         self.left = left
@@ -14,13 +12,16 @@ class Tree(object):
     def hasRight(self):
             return self.left
 
-    def addChild(n):
-        if (Tree.hasLeft()):
-            if (Tree.hasRight()):
-                return None
-            Tree.right = n
+    def addChild(self, val):
+        if (self.left != None):
+            if (self.right != None):
+                print 'could not add child.'
+                return
+            else:
+                self.right = Tree(val, None, None)
         else:
-            Tree.left = n
+            self.left = Tree(val, None, None)
+        return
 
 
 
@@ -33,31 +34,45 @@ preorder = input('Please enter your Preorder Sequence: ')
 leftChild = None
 rightChild = None
 a = [i for i in preorder]
+tNode = Tree(1, None, None)
+a.pop(0)
 
-
-def buildTreePreorder(a):
-    depth = int(math.ceil(math.log(len(a), 2)))
-    middle = int(math.floor(math.pow(2, depth) / 2))
-    if depth <= 1:
-        tNode = Tree(a[0], None, None)
+def buildTreePreorder(a, tNode):
+    if tNode == None:
+        return
+    if len(a) == 0:
         return
     else:
+        depth = int(math.ceil(math.log(len(a), 2)))
+        middle = int(math.floor(math.pow(2, depth) / 2))
+        print 'depth is ', depth, 'and the middle is', middle, 'array size is', len(a)
+        if depth == 0:
+            Node = Tree(a[0], None, None)
+            return
+        else:
+            tNode.addChild(a[0])
+            if depth == 1:
+                middle = 2
+            if depth == 2:
+                middle = 3
+            tNode.addChild(a[middle-1])
+            print 'added left child', a[0], 'and right child', a[middle-1], 'to ', tNode.data
+            print a
+            print
+            a.pop(0)
+            b, c = a[:middle-2], a[middle-1:]
+            buildTreePreorder(b, tNode.left)
+            buildTreePreorder(c, tNode.right)
 
-        tNode = Tree(a[0], a[1], a[middle+1])
-        a.pop(0)
-        b, c = a[:middle], a[middle+1:]
-        depth = depth - 1
-        buildTreePreorder(b)
-        buildTreePreorder(c)
-
-buildTreePreorder(a)
+buildTreePreorder(a, tNode)
 
 
-def postOrder(tree):
+def preOrder(tree):
     if tree == None: return
-    postOrder(tree.hasLeft())
-    postOrder(tree.hasRight())
     print tree.data
+    preOrder(tree.left)
+    preOrder(tree.right)
     return
 
-#postOrder(a[1])
+preOrder(tNode)
+# 1,2,3,4,5,6,7,8,9,10,11,12

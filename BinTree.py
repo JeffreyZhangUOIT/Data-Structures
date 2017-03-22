@@ -1,14 +1,13 @@
 """
     This program creates a binary tree out of the given inputs in the form: n1,n2,n3,n4,n5
     assuming it either given in the form of preorder, inorder or postorder traversal.
-    It will down output the traversals using the other two methods.
+    It will then output the traversals using the other two methods.
 """
 import math
 """
-    These three functions are the functions for traversing a binary tree in
-    preorder, inorder, and postorder. The only difference between each function
-    is the when the current node's data is printed. We use these functions to get
-    the appropriate traversal in for each tree.
+    These three recursive methods are for traversing a binary tree in
+    preorder, inorder, and postorder. The only difference between each method
+    is the when the current node's data is printed. 
 """
 def preOrder(tree):
     if tree == None: return
@@ -33,7 +32,9 @@ def postOrder(tree):
 """
     This is the abstract data structure for a binary tree. In this implementation,
     a tree is defined as a node carrying data and two references to two subtrees.
-    The tree inherits from the default object class.
+    The tree inherits from the default object class. Unneccessary functions that
+    are common to binary trees such as editing and removing a node have been
+    omitted.
 
     __init__(self, data, left, right) is the constructor for each tree. A null node would be initalised as Tree(None, None, None)
     self: The instance of tree which called this constructor.
@@ -41,7 +42,8 @@ def postOrder(tree):
     left: The left subtree
     right: The right subtree
 
-    addChild(self, val) is a function that adds a subtree who's data is given as val. This will always populate a left child before a right child.
+    addChild(self, val) is a function that adds a subtree who's data is given as val. 
+    This will always populate a left child before a right child.
     self: The instance of tree which called this method
     val: The data to be carried by the subtree.
 
@@ -139,7 +141,7 @@ def buildTreeInorder(list, tNode):
     We accomplish this by first assiging the current node's data value the last element of an list. Then we remove the last element
     from the list. It will then split the list into two subsets, b and c, such that b is the first 2^n elements and c is the
     remaining elements. n is the depth of the current tree, calculated from the number of elements in the list. The node's children
-    are then assigned as the last element of each new list b and c. This is a property of post-order traversal.
+    are assigned as the last element of each new list b and c. This is a property of post-order traversal.
 
     list: The unassigned elements in a post-order traversal of a binary tree.
     tNode: The current node in a binary tree.
@@ -223,7 +225,7 @@ inOrder(postTree)
 # Example Sequence:
 # 1,2,3,4,5,6,7,8,9,10,11,12
 """
-    If you want to check if the tree is build correctly,
+    If you want to check if the tree is built correctly,
     run the preorder traversal on the preorder tree.
     The other variations postorder and inorder also work.
 """

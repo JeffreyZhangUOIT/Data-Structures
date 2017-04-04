@@ -1,0 +1,21 @@
+import csv
+
+with open('exercise-1.csv') as csvfile:
+    readCSV = csv.reader(csvfile, delimiter=',')
+    has_header = csv.Sniffer().has_header(csvfile.read(1024))
+    csvfile.seek(0)  # rewind
+    incsv = csv.reader(csvfile)
+    if has_header:
+        next(incsv)  # skip header row
+    column = 1
+    datatype = float
+    data = (datatype(row[column]) for row in incsv)
+    x = []
+    y = []
+    pair = []
+    for row in readCSV:
+        sepal_width = float(row[0])
+        petal_width = float(row[1])
+        pair.append((sepal_width, petal_width))
+
+    print pair  # Ex.: pair[0][0] for the x  data in the 0 index 

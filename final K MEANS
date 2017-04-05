@@ -1,10 +1,13 @@
 import numpy as np
 import random
+from timeit import default_timer as time
 # This script reads the points in CSV format
 import csv
+timestarter= time()
+
 
 # Set up input and output variables for the script
-with open('exercise-3.csv') as csvfile: #selectring the exercise
+with open('exercise-1.csv') as csvfile: #selectring the exercise
     readCSV = csv.reader(csvfile, delimiter=',')
     # Set up CSV reader and process the header
     has_header = csv.Sniffer().has_header(csvfile.read(1024))
@@ -63,7 +66,7 @@ def findcentroids(X, K):
         oldarr = newarr     # Assign all points in X to clusters
         clusters = clusterdata(X, newarr) # Reevaluate centers
         newarr = reevaluate_centers(oldarr, clusters)
-    return (newarr, clusters)
+        return (newarr, clusters)
 
 
 def init_board(N):
@@ -73,9 +76,10 @@ def init_board(N):
 
 X = init_board(len(pair))
 
-newarr, clusters = findcentroids(X, 4) # introduce the K value as (  X, K)
-
+newarr, clusters = findcentroids(X,5) # introduce the K value as (  X, K)
+endtimer=time()
 print newarr # print to checking the centroids
+print "time in seconds= "+ str(endtimer-timestarter)
 
 import matplotlib.pyplot as plt
 

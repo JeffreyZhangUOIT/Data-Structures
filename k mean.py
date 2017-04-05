@@ -4,7 +4,7 @@ import random
 import csv
 
 # Set up input and output variables for the script
-with open('exercise-1.csv') as csvfile:
+with open('exercise-2.csv') as csvfile:
     readCSV = csv.reader(csvfile, delimiter=',')
     # Set up CSV reader and process the header
     has_header = csv.Sniffer().has_header(csvfile.read(1024))
@@ -31,9 +31,6 @@ with open('exercise-1.csv') as csvfile:
         # Print the coordinate list
 print (pair)  # Ex.: pair[0][0] for the x  data in the 0 index
 print(len(pair))
-
-pair2 = random.sample(pair, 150)
-K = 4
 
 def cluster_points(X, mu):
     clusters = {}
@@ -79,8 +76,29 @@ def init_board(N):
     return X
 
 
-X = init_board(10)
+X = init_board(len(pair))
 
 mu, clusters = find_centers(X, 4)
 
 print mu
+
+import matplotlib.pyplot as plt
+
+xValues = []
+yValues = []
+
+for x in clusters:
+    nextX = []
+    nextY = []
+    for point in clusters[x]:
+        nextX.append(point[0])
+        nextY.append(point[1])
+    xValues.append(nextX)
+    yValues.append(nextY)
+
+colour = ["green", "blue", "red", "black"]
+
+for i in range(0,len(mu)):
+    plt.scatter(xValues[i], yValues[i], s=75, c=colour[i]) #xValues and yValues must be the same length
+    plt.scatter(mu[i][0], mu[i][1], s=150, c=colour[i])
+plt.show()

@@ -1,66 +1,89 @@
-#!/usr/bin/python
-#
-# K-means clustering using Lloyd's algorithm in pure Python.
-# Written by Lars Buitinck. This code is in the public domain.
-#
-# The main program runs the clustering algorithm on a bunch of text documents
-# specified as command-line arguments. These documents are first converted to
-# sparse vectors, represented as lists of (index, value) pairs.
+import csv
 
-from collections import defaultdict
-from math import sqrt
+# Set up input and output variables for the script
+with open('exercise-1.csv') as csvfile:
+    readCSV = csv.reader(csvfile, delimiter=',')
+    # Set up CSV reader and process the header
+    has_header = csv.Sniffer().has_header(csvfile.read(1024))
+    csvfile.seek(0)  # rewind
+    incsv = csv.reader(csvfile)
+    if has_header:
+        next(incsv)  # skip header row
+    column = 1
+    datatype = float
+    data = (datatype(row[column]) for row in incsv)
+
+    # Make empty lists
+    z = []
+    y = []
+    pair = []
+
+    # Loop through the lines in the file and get each coordinate
+    for row in readCSV:
+        z = float(row[0])
+        y = float(row[1])
+        pair.append((z, y))
+
+
+    # Print the coordinate list
+print (pair)  # Ex.: pair[0][0] for the x  data in the 0 index
+print(len(pair))
+
+
+import numpy as np
 import random
 
-
-def densify(x, n):
-    """Convert a sparse vector to a dense one."""
-    d = [0] * n
-    for i, v in x:
-        d[i] = v
-    return d
+pair2= random.sample(pair,150)
+K=4
+pair = data
 
 
-def dist(x, c):
-    """Euclidean distance between sample x and cluster center c.
-    Inputs: x, a sparse vector
-            c, a dense vector
-    """
-    sqdist = 0.
-    for i, v in x:
-        sqdist += (v - c[i]) ** 2
-    return sqrt(sqdist)
+def cluster_points(data, mu):
+    data = X
+    clusters  = {}
+    for x in X:
+        bestmukey = min([(i[0], np.linalg.norm(x-mu[i[0]])) \
+                    for i in enumerate(mu)], key=lambda t:t[1])[0]
+        #print [(i[0], np.linalg.norm(x-mu[i[0]])) for i in enumerate(mu)]
+        #print bestmukey
+        try:
+            clusters[bestmukey].append(x)
+        except KeyError:
+            clusters[bestmukey] = [x]
+    return clusters
+
+def reevaluate_centers(mu, clusters):
+    newmu = []
+    keys = sorted(clusters.keys())
+    for k in keys:
+        newmu.append(np.mean(clusters[k], axis = 0))
+    return newmu
+
+def has_converged(mu, oldmu):
+    return (set([tuple(a) for a in mu]) == set([tuple(a) for a in oldmu]))
+
+def find_centers(X, K):
+    # Initialize to K random centers
+    oldmu = random.sample(X, K)
+    mu = random.sample(X, K)
+    while not has_converged(mu, oldmu):
+        oldmu = mu
+        # Assign all points in X to clusters
+        clusters = cluster_points(X, mu)
+        # Reevaluate centers
+        mu = reevaluate_centers(oldmu, clusters)
+    return(mu, clusters)
 
 
-def mean(xs, l):
-    """Mean (as a dense vector) of a set of sparse vectors of length l."""
-    c = [0.] * l
-    n = 0
-    for x in xs:
-        for i, v in x:
-            c[i] += v
-        n += 1
-    for i in xrange(l):
-        c[i] /= n
-    return c
+def init_board(N):
+
+    X = np.array([(random.uniform(-1, 1), random.uniform(-1, 1)) for i in range(N)])
+
+    return X
 
 
-def kmeans(k, xs, l, n_iter=10):
-    # Initialize from random points.
-    centers = [densify(xs[i], l) for i in random.sample(xrange(len(xs)), k)]
-    cluster = [None] * len(xs)
+X = init_board(10)
 
-    for _ in xrange(n_iter):
-        for i, x in enumerate(xs):
-            cluster[i] = min(xrange(k), key=lambda j: dist(xs[i], centers[j]))
-        for j, c in enumerate(centers):
-            members = (x for i, x in enumerate(xs) if cluster[i] == j)
-            centers[j] = mean(members, l)
+mu, clusters = find_centers(X, 4)
 
-    return cluster
-
-import pandas as pd
-
-if __name__ == '__main__':
-    file = 'exercise-1.csv'
-
-    df = pd.read_csv(file, parse_dates=[0], header=None, names=['sepal_width', 'petal_width'])
+print mu

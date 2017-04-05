@@ -1,49 +1,66 @@
-
+from skimage.measure import label
 import numpy as np
 import math as m
 import cv2
 import sys
+import time
 
-name = 'exercise-1.jpg'
-img = cv2.imread(name)
-lower_res = cv2.imread(name)
-print img.shape
-height, width, ch = img.shape
-count = 0
-sys.setrecursionlimit(1000)
-while height > 500 or width > 500:
-    print 'lower res'
-    count += 1
-    lower_res = cv2.pyrDown(lower_res)
-    height, width, ch = lower_res.shape
+# A node of a 1-way linked list
+class Node(object):
+    def __init__(self, data, next):
+        self.data = data
+        self.next = next
 
-print 'scaled down to', lower_res.shape
+"""
+Singaly linked list ADS.
+Has append(), remove() and traversal()
+Used sparingly to hold different resolutions of images
+"""
+class SingleList(object):
+    head = None
+    tail = None
 
-class faceBit:
-    def __init__(self, grey, x, y):
-        self.value = grey
-        self.maxx = x
-        self.minx = x
-        self.maxy = y
-        self.miny = y
+    def show(self):
+        print "Showing list data:"
+        current_node = self.head
+        while current_node is not None:
+            print current_node.data, " -> ",
+            current_node = current_node.next
+        print None
 
-    def align(self, x1, x2, y1, y2):
-        if self.maxx < x1:
-            self.maxx = x1
-        if self.minx > x2:
-            self.minx = x2
-        if self.maxy < y1:
-            self.maxy = y1
-        if self.miny > y2:
-            self.miny = y2
-
-    def update(self, node):
-        if node.value == self.value:
-            self.align(node.maxx, node.minx, node.maxy, node.miny)
+    def append(self, data):
+        node = Node(data, None)
+        if self.head is None:
+            self.head = self.tail = node
         else:
-            return
+            self.tail.next = node
+        self.tail = node
 
+    def remove(self, node_value):
+        current_node = self.head
+        previous_node = None
+        while current_node is not None:
+            if current_node.data == node_value:
+                # if this is the first node (head)
+                if previous_node is not None:
+                    previous_node.next = current_node.next
+                else:
+                    self.head = current_node.next
 
+            # needed for the next iteration
+            previous_node = current_node
+            current_node = current_node.next
+
+    def traversal(self, n):
+        current_node = self.head
+        while n>0:
+            current_node = self.tail
+        return current_node
+
+"""
+Median blur that takes the center pixel of a 3x3 square area of a pixel and 
+converts it to become the average of the 3x3 area.
+"""
 def MedianBlur2D(img):
     copy = img
     s=1
@@ -65,22 +82,16 @@ def MedianBlur2D(img):
             copy[y, x] = members[4]
     return copy
 
-def infection(grey, h, w, oc, nc, x, y):
-    if (x>=(w-10)) or (x <= 10) or (y >= (h-10)) or (y<=10):
-        return
-    else:
-        grey[x, y] = nc
-        if grey[x, y-1] == oc:
-            infection(grey, h, w, oc, nc, x, y-1)
-        elif grey[x, y+1] == oc:
-            infection(grey, h, w, oc, nc, x, y+1)
-        elif grey[x-1, y] == oc:
-            infection(grey, h, w, oc, nc, x-1, y)
-        elif grey[x+1, y] == oc:
-            infection(grey, h, w, oc, nc, x+1, y)
-        return nc
+"""
+Finds the regions of the image which appear to have skin. This is done
+by getting the log-opponent image and converting these values into a 
+hue, saturation and intensity map. 
 
+Input: An image loaded as a 2D array with 3 channels (RGB).
 
+Output: A binary array with the same size as the input image where
+the regions with skin are marked with a '1' and zeros everywhere else.
+"""
 def skinMap(img):
     b, g, r = cv2.split(img)
     height, width, ch = img.shape
@@ -144,6 +155,11 @@ def skinMap(img):
                 map[y, x] = 0;
     return map
 
+"""
+Finds individual skin regions and draws a box around them. Could be vastly improved.
+
+Input: 
+"""
 def findFaces(map, lower, img, upscale):
     grey = cv2.cvtColor(lower, cv2.COLOR_BGR2GRAY)
     grey = cv2.equalizeHist(grey)
@@ -171,21 +187,19 @@ def findFaces(map, lower, img, upscale):
     height, width = grey.shape
     mask = np.zeros((height + 2, width + 2))
 
-    for rows in range(10, height - 10):
-        for cols in range(10, width - 10):
-            if grey[rows, cols] == 255:
-                print 'pixel change'
-                al, labels = label(grey)
+    print grey.shape, 'grey upscaled'
+    al, nums = label(grey, 4, 0, True, 1)
 
     height, width = grey.shape
-    for e in range(labels):
+
+    while nums > 0:
         maxx = 0
         maxy = 0
         minx = width
         miny = height
         for rows in range(10, height - 10):
             for cols in range(10, width - 10):
-                if al[rows, cols] == e:
+                if al[rows, cols] == nums:
                     if maxx < cols:
                         maxx = cols
                     if minx > cols:
@@ -194,93 +208,58 @@ def findFaces(map, lower, img, upscale):
                         maxy = rows
                     if miny > rows:
                         miny = rows
-        cv2.rectangle(grey, (maxx, maxy), (minx, miny), (150), thickness=2, lineType=4, shift=0)
-
-
-    """
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    ngrey = cv2.morphologyEx(ngrey, cv2.MORPH_CLOSE, kernel)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    ngrey = cv2.erode(ngrey, kernel, iterations = 1)
-    ngrey = cv2.dilate(ngrey, kernel, iterations= 1)
-
-    cv2.circle(grey, (centerx, centery), (list[0].maxx - centerx), 150, thickness=2, lineType=4,
-                      shift=0)
-    cv2.rectangle(grey, (list[e].maxx, list[e].maxy), (list[e].minx, list[e].miny), (150), thickness=2, lineType=4, shift=0)
-
-    height, width = ngrey.shape
-    for rows in range(height):
-        for cols in range(width):
-            if ngrey[rows, cols] > 200:
-                ngrey[rows,cols] = 100
-            if map[rows, cols] == 0:
-                ngrey[rows, cols] = 0
-
-    diff = grey - ngrey
-
-    for rows in range(height):
-        for cols in range(width):
-            if (cv2.subtract(grey, ngrey)) > 0:
-                diff[rows, cols] = grey[rows,cols] - ngrey[rows,cols]
-
-
-    temp = cv2.cvtColor(lower, cv2.COLOR_BGR2GRAY)
-    height, width = map.shape
-    for rows in range(height):
-        for cols in range(width):
-            if map[rows, cols] != 1:
-                temp[rows, cols] = 255
-            else:
-                temp[rows, cols] = 100
-    """
-
+        nums -= 1
+        cv2.rectangle(lower, (maxx, maxy), (minx, miny), (0,255,0), thickness=3, lineType=4, shift=0)
 
     while upscale > 0:
         grey = cv2.pyrUp(grey)
-        #diff = cv2.pyrUp(diff)
+        lower = cv2.pyrUp(lower)
         upscale -= 1
-    print grey.shape, 'grey upscaled'
-    """
 
-    params = cv2.SimpleBlobDetector_Params()
-    params.minThreshold = 10;
-    params.maxThreshold = 255;
-    params.filterByArea = True
-    params.minArea = 8000
-    params.maxArea = 1600000
-    params.filterByCircularity = True
-    params.minCircularity = 0.1
-    params.filterByConvexity = True
-    params.minConvexity = 0.1
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.1
+    cv2.imshow('marked', lower)
 
-    detector = cv2.SimpleBlobDetector(params)
+# Inital settings.
+start_time = time.time()
+name = 'exercise-6.jpg'
+img = cv2.imread(name)
+lower_res = cv2.imread(name)
+height, width, ch = img.shape
+count = 0
+sl = SingleList()
 
-    keypoints = detector.detect(ngrey)
+# Lowers the resolution of the image if it gets too large.
+while height > 800 or width > 800:
+    count += 1
+    lower_res = cv2.pyrDown(lower_res)
+    sl.append(lower_res)
+    height, width, ch = lower_res.shape
 
-    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    for each in keypoints:
-        for other in reversed(keypoints):
-            if other <= each:
-                return
-            if (keypoints[each].y < keypoints[other].y + 10) & (keypoints[each].y > keypoints[other].y - 10):
-                cv2.Rectangle(im_with_keypoints, (keypoints[each].x - 10, keypoints[each].y-50), (keypoints[other].x - 10, keypoints[other].y+50), (0, 255, 0),
-                             thickness =3, lineType = 8)
-    """
-
-    cv2.imshow('circled', grey)
-    #cv2.imshow('grey', grey)
-    #cv2.imshow ('c', gradient)
-    #cv2.imshow('ngrey', ngrey)
-
-
+# Calls the functions on images. 
+print 'scaled down to', lower_res.shape
 map = skinMap(lower_res)
 findFaces(map, lower_res, img, count)
 
-
-print 'waiting on you'
+# Displays the original img and calculates runtime.
+cv2.imshow('orignal', img)
+endtime = time.time() - start_time
+print "Finished after: ", endtime, "seconds"
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-
+"""
+Unused self made floodfill.
+def infection(grey, h, w, oc, nc, x, y):
+    if (x>=(w-10)) or (x <= 10) or (y >= (h-10)) or (y<=10):
+        return
+    else:
+        grey[x, y] = nc
+        if grey[x, y-1] == oc:
+            infection(grey, h, w, oc, nc, x, y-1)
+        elif grey[x, y+1] == oc:
+            infection(grey, h, w, oc, nc, x, y+1)
+        elif grey[x-1, y] == oc:
+            infection(grey, h, w, oc, nc, x-1, y)
+        elif grey[x+1, y] == oc:
+            infection(grey, h, w, oc, nc, x+1, y)
+        return nc
+"""

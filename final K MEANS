@@ -91,7 +91,7 @@ for x in clusters:
     xValues.append(nextX)
     yValues.append(nextY)
 
-colour = ["green", "blue", "red", "black"]
+colour = ["green", "blue", "red", "black", "yellow"]
 
 for i in range(0,len(newarr)):
     plt.scatter(xValues[i], yValues[i], s=75, c=colour[i]) #xValues and yValues must be the same length

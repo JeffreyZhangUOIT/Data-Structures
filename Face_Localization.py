@@ -1,20 +1,49 @@
+
 import numpy as np
 import math as m
 import cv2
+import sys
 
-name = 'exercise-4.jpg'
+name = 'exercise-1.jpg'
 img = cv2.imread(name)
 lower_res = cv2.imread(name)
 print img.shape
 height, width, ch = img.shape
 count = 0
-while height > 800 or width > 800:
+sys.setrecursionlimit(1000)
+while height > 500 or width > 500:
     print 'lower res'
     count += 1
     lower_res = cv2.pyrDown(lower_res)
     height, width, ch = lower_res.shape
 
 print 'scaled down to', lower_res.shape
+
+class faceBit:
+    def __init__(self, grey, x, y):
+        self.value = grey
+        self.maxx = x
+        self.minx = x
+        self.maxy = y
+        self.miny = y
+
+    def align(self, x1, x2, y1, y2):
+        if self.maxx < x1:
+            self.maxx = x1
+        if self.minx > x2:
+            self.minx = x2
+        if self.maxy < y1:
+            self.maxy = y1
+        if self.miny > y2:
+            self.miny = y2
+
+    def update(self, node):
+        if node.value == self.value:
+            self.align(node.maxx, node.minx, node.maxy, node.miny)
+        else:
+            return
+
+
 def MedianBlur2D(img):
     copy = img
     s=1
@@ -35,6 +64,22 @@ def MedianBlur2D(img):
             members.sort()
             copy[y, x] = members[4]
     return copy
+
+def infection(grey, h, w, oc, nc, x, y):
+    if (x>=(w-10)) or (x <= 10) or (y >= (h-10)) or (y<=10):
+        return
+    else:
+        grey[x, y] = nc
+        if grey[x, y-1] == oc:
+            infection(grey, h, w, oc, nc, x, y-1)
+        elif grey[x, y+1] == oc:
+            infection(grey, h, w, oc, nc, x, y+1)
+        elif grey[x-1, y] == oc:
+            infection(grey, h, w, oc, nc, x-1, y)
+        elif grey[x+1, y] == oc:
+            infection(grey, h, w, oc, nc, x+1, y)
+        return nc
+
 
 def skinMap(img):
     b, g, r = cv2.split(img)
@@ -97,13 +142,12 @@ def skinMap(img):
 
             else:
                 map[y, x] = 0;
-    print map[0, 0], 'map cord'
     return map
 
 def findFaces(map, lower, img, upscale):
     grey = cv2.cvtColor(lower, cv2.COLOR_BGR2GRAY)
     grey = cv2.equalizeHist(grey)
-    ret, grey = cv2.threshold(grey, 50, 210, cv2.THRESH_BINARY)
+    ret, grey = cv2.threshold(grey, 50, 255, cv2.THRESH_BINARY)
     height, width = map.shape
 
 
@@ -118,7 +162,41 @@ def findFaces(map, lower, img, upscale):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     grey = cv2.dilate(grey, kernel, iterations=scale)
     grey = cv2.erode(grey, kernel, iterations=scale)
+
     #Destroy More Holes
+    s = 1
+    grey = cv2.copyMakeBorder(grey, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=0)
+
+    list = []
+    height, width = grey.shape
+    mask = np.zeros((height + 2, width + 2))
+
+    for rows in range(10, height - 10):
+        for cols in range(10, width - 10):
+            if grey[rows, cols] == 255:
+                print 'pixel change'
+                al, labels = label(grey)
+
+    height, width = grey.shape
+    for e in range(labels):
+        maxx = 0
+        maxy = 0
+        minx = width
+        miny = height
+        for rows in range(10, height - 10):
+            for cols in range(10, width - 10):
+                if al[rows, cols] == e:
+                    if maxx < cols:
+                        maxx = cols
+                    if minx > cols:
+                        minx = cols
+                    if maxy < rows:
+                        maxy = rows
+                    if miny > rows:
+                        miny = rows
+        cv2.rectangle(grey, (maxx, maxy), (minx, miny), (150), thickness=2, lineType=4, shift=0)
+
+
     """
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     ngrey = cv2.morphologyEx(ngrey, cv2.MORPH_CLOSE, kernel)
@@ -126,6 +204,9 @@ def findFaces(map, lower, img, upscale):
     ngrey = cv2.erode(ngrey, kernel, iterations = 1)
     ngrey = cv2.dilate(ngrey, kernel, iterations= 1)
 
+    cv2.circle(grey, (centerx, centery), (list[0].maxx - centerx), 150, thickness=2, lineType=4,
+                      shift=0)
+    cv2.rectangle(grey, (list[e].maxx, list[e].maxy), (list[e].minx, list[e].miny), (150), thickness=2, lineType=4, shift=0)
 
     height, width = ngrey.shape
     for rows in range(height):
@@ -158,9 +239,8 @@ def findFaces(map, lower, img, upscale):
         grey = cv2.pyrUp(grey)
         #diff = cv2.pyrUp(diff)
         upscale -= 1
-
     print grey.shape, 'grey upscaled'
-    ngrey = 255 - grey
+    """
 
     params = cv2.SimpleBlobDetector_Params()
     params.minThreshold = 10;
@@ -180,8 +260,6 @@ def findFaces(map, lower, img, upscale):
     keypoints = detector.detect(ngrey)
 
     im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-    """
     for each in keypoints:
         for other in reversed(keypoints):
             if other <= each:
@@ -191,8 +269,8 @@ def findFaces(map, lower, img, upscale):
                              thickness =3, lineType = 8)
     """
 
-    cv2.imshow('circled', im_with_keypoints)
-    cv2.imshow('grey', grey)
+    cv2.imshow('circled', grey)
+    #cv2.imshow('grey', grey)
     #cv2.imshow ('c', gradient)
     #cv2.imshow('ngrey', ngrey)
 
@@ -204,4 +282,5 @@ findFaces(map, lower_res, img, count)
 print 'waiting on you'
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
 

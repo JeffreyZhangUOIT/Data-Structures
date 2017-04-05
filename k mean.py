@@ -1,3 +1,6 @@
+import numpy as np
+import random
+# This script reads the points in CSV format
 import csv
 
 # Set up input and output variables for the script
@@ -35,11 +38,11 @@ import random
 
 pair2= random.sample(pair,150)
 K=4
-pair = data
+pair= data
 
 
-def cluster_points(data, mu):
-    data = X
+def cluster_points(X, mu):
+    
     clusters  = {}
     for x in X:
         bestmukey = min([(i[0], np.linalg.norm(x-mu[i[0]])) \

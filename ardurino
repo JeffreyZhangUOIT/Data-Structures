@@ -3,12 +3,15 @@ const int d2 = 2;
 const int d3 = 3;
 const int d4 = 4;
 
-const int i0 = 6;
-const int i1 = 7;
-const int i2 = 8;
-const int i3 = 9;
+const int i0 = 5;
+const int i1 = 6;
+const int i2 = 7;
+const int i3 = 8;
+const int m0 = 11;
+const int m1 = 12;
+const int m2 = 13;
 const int mod = 10;
-const int enable = 11;
+const int enable = 9;
 
 void setup() {
   Serial.begin(9600);
@@ -27,6 +30,7 @@ void setup() {
 }
 
 void loop() {
+  int x = 0
   if (digitalRead(mod) == HIGH) {
      digitalWrite(d1, LOW);
      digitalWrite(d2, digitalRead(i0));
@@ -39,6 +43,13 @@ void loop() {
     digitalWrite(d3, digitalRead(i2));
     digitalWrite(d4, digitalRead(i3));
   }
+  int x = bitWrite(x,0,digitalRead(d1);
+  int x = bitWrite(x,1,digitalRead(d2);
+  int x = bitWrite(x,2,digitalRead(d3);
+  int x = bitWrite(x,0,digitalRead(m0);
+  int x = bitWrite(x,1,digitalRead(m1);
+  int x = bitWrite(x,2,digitalRead(m2);
+  if x
   delay(1000);
  
 }

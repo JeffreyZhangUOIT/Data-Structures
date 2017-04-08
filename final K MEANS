@@ -37,7 +37,7 @@ def clusterdata(X, newarr):
     for x in X:
         newarrmin = min([(i[0], np.linalg.norm(x - newarr[i[0]])) \
          for i in enumerate(newarr)], key=lambda t: t[1])[0]        # start an array which has the smallets value
-        # print [(i[0], np.linalg.norm(x-newarr[i[0]])) for i in enumerate(mu)]
+        # print [(i[0], np.linalg.norm(x-newarr[i[0]])) for i in enumerate(newarr)]
         # print newarrmin
         try:
             clusters[newarrmin].append(x)

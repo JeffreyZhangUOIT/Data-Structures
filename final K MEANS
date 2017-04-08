@@ -7,7 +7,7 @@ timestarter= time()
 
 
 # Set up input and output variables for the script
-with open('exercise-1.csv') as csvfile: #selectring the exercise
+with open('exercise-4.csv') as csvfile: #selectring the exercise
     readCSV = csv.reader(csvfile, delimiter=',')
     # Set up CSV reader and process the header
     has_header = csv.Sniffer().has_header(csvfile.read(1024))
@@ -46,7 +46,7 @@ def clusterdata(X, newarr):
     return clusters
 
 
-def reevaluate_centers(newarr, clusters):
+def reeval_centroids(newarr, clusters):
     newarr2 = []
     keys = sorted(clusters.keys())
     for k in keys:
@@ -54,7 +54,7 @@ def reevaluate_centers(newarr, clusters):
     return newarr2
 
 
-def has_converged(newarr, oldarr):
+def not_converge(newarr, oldarr):
     return (set([tuple(a) for a in newarr]) == set([tuple(a) for a in oldarr]))
 
 
@@ -62,24 +62,25 @@ def findcentroids(X, K):
     # Initialize to K random centers
     oldarr = random.sample(X, K)
     newarr = random.sample(X, K)
-    while not has_converged(newarr, oldarr):
+    while not not_converge(newarr, oldarr):
         oldarr = newarr     # Assign all points in X to clusters
         clusters = clusterdata(X, newarr) # Reevaluate centers
-        newarr = reevaluate_centers(oldarr, clusters)
+        newarr = reeval_centroids(oldarr, clusters)
         return (newarr, clusters)
 
 
-def init_board(N):
+def board(N):
     X = np.array([(pair[i][0], pair[i][1]) for i in range(N)])
     return X
 
 
-X = init_board(len(pair))
+X = board(len(pair))
 
 newarr, clusters = findcentroids(X,5) # introduce the K value as (  X, K)
 endtimer=time()
 print newarr # print to checking the centroids
 print "time in seconds= "+ str(endtimer-timestarter)
+print(len(pair))
 
 import matplotlib.pyplot as plt
 
@@ -98,6 +99,6 @@ for x in clusters:
 colour = ["green", "blue", "red", "black", "yellow"]
 
 for i in range(0,len(newarr)):
-    plt.scatter(xValues[i], yValues[i], s=75, c=colour[i]) #xValues and yValues must be the same length
-    plt.scatter(newarr[i][0], newarr[i][1], s=150, c=colour[i])
+    plt.scatter(xValues[i], yValues[i], s=75, c=colour[i], edgecolors='black') #xValues and yValues must be the same length
+    plt.scatter(newarr[i][0], newarr[i][1], s=150, c=colour[i] , edgecolors='orange')
 plt.show()

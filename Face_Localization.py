@@ -2,7 +2,6 @@ from skimage.measure import label
 import numpy as np
 import math as m
 import cv2
-import sys
 import time
 
 # A node of a 1-way linked list
@@ -58,25 +57,24 @@ class SingleList(object):
         return current_node
 
 """
-Median blur that takes the center pixel of a 3x3 square area of a pixel and 
-converts it to become the average of the 3x3 area.
+Median blur that take1 the center pixel of a 3x3 1quare area of a pixel and 
+convert1 it to become the average of the 3x3 area.
 """
 def MedianBlur2D(img):
     copy = img
-    s=1
     height, width = img.shape
     members = [0, 0]*9
-    for y in range(10+s, height-(10+s)):
-        for x in range(10+s, width-(10+s)):
-            members[0] = img[y - s, x - s]
-            members[1] = img[y, x - s]
-            members[2] = img[y + s, x - s]
-            members[3] = img[y - s, x]
+    for y in range(10+1, height-(10+1)):
+        for x in range(10+1, width-(10+1)):
+            members[0] = img[y - 1, x - 1]
+            members[1] = img[y, x - 1]
+            members[2] = img[y + 1, x - 1]
+            members[3] = img[y - 1, x]
             members[4] = img[y, x]
-            members[5] = img[y + s, x]
-            members[6] = img[y - s, x + s]
-            members[7] = img[y, x + s]
-            members[8] = img[y + s, x + s]
+            members[5] = img[y + 1, x]
+            members[6] = img[y - 1, x + 1]
+            members[7] = img[y, x + 1]
+            members[8] = img[y + 1, x + 1]
 
             members.sort()
             copy[y, x] = members[4]
@@ -115,7 +113,6 @@ def skinMap(img):
             lb[rows, cols] = 105*m.log10(b[rows, cols] + 1)
             lg[rows, cols] = 105*m.log10(g[rows, cols] + 1)
 
-
     I = (lr + lb + lg) / 3
     Rg = lr - lg
     By = lb - ((lg + lr) / 2)
@@ -130,12 +127,9 @@ def skinMap(img):
     MAD = I - I_filt
     MAD = abs(MAD)
     MAD = MedianBlur2D(MAD)
-
     hue = (np.arctan2(Rg, By) * (180/m.pi))
     saturation = np.sqrt(np.power(Rg, 2) + np.power(By, 2))
-
     map = np.zeros((height, width))
-    zeroes = np.zeros((height, width))
 
     for rows in range(height):
         for cols in range(width):
@@ -144,13 +138,10 @@ def skinMap(img):
             if (MAD[rows, cols] < 4.5) & (150 < hue[rows, cols]) & (hue[rows, cols] < 180) & (saturation[rows, cols] > 20) & (saturation[rows, cols] < 80):
                 map[rows, cols] = 1
 
-    kernal = np.ones((10*scale, 10*scale), np.uint8)
-
     for y in range(height):
         for x in range(width):
             if (map[y, x] == 1) & (110 <= hue[y, x]) & (0 <= saturation[y, x]) & (saturation[y, x] <= 130):
                 map[y, x] = 1;
-
             else:
                 map[y, x] = 0;
     return map
@@ -180,12 +171,9 @@ def findFaces(map, lower, img, upscale):
     grey = cv2.erode(grey, kernel, iterations=scale)
 
     #Destroy More Holes
-    s = 1
     grey = cv2.copyMakeBorder(grey, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=0)
-
-    list = []
     height, width = grey.shape
-    mask = np.zeros((height + 2, width + 2))
+
 
     print grey.shape, 'grey upscaled'
     al, nums = label(grey, 4, 0, True, 1)
@@ -220,7 +208,7 @@ def findFaces(map, lower, img, upscale):
 
 # Inital settings.
 start_time = time.time()
-name = 'exercise-6.jpg'
+name = 'exercise-1.jpg'
 img = cv2.imread(name)
 lower_res = cv2.imread(name)
 height, width, ch = img.shape
@@ -245,21 +233,3 @@ endtime = time.time() - start_time
 print "Finished after: ", endtime, "seconds"
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-"""
-Unused self made floodfill.
-def infection(grey, h, w, oc, nc, x, y):
-    if (x>=(w-10)) or (x <= 10) or (y >= (h-10)) or (y<=10):
-        return
-    else:
-        grey[x, y] = nc
-        if grey[x, y-1] == oc:
-            infection(grey, h, w, oc, nc, x, y-1)
-        elif grey[x, y+1] == oc:
-            infection(grey, h, w, oc, nc, x, y+1)
-        elif grey[x-1, y] == oc:
-            infection(grey, h, w, oc, nc, x-1, y)
-        elif grey[x+1, y] == oc:
-            infection(grey, h, w, oc, nc, x+1, y)
-        return nc
-"""
